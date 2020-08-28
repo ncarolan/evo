@@ -1,2 +1,3 @@
 # yello
-A playground for evolutionary agents in your browser.
+
+Yello is a playground for evolutionary agents in your browser.
