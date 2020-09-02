@@ -1,3 +1,3 @@
-# yello
+# E V O
 
-Yello is a playground for evolutionary agents in your browser.
+evo is a playground for evolutionary agents in your browser.
