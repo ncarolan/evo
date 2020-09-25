@@ -1,5 +1,5 @@
 # E V O
 
-evo is a playground for evolutionary agents in your browser.
+<img src="evo.png">
 
-<img href="evo.png">
+evo is a playground for evolutionary agents in your browser.
