@@ -2,7 +2,7 @@
 
 <img src="evo.png">
 
-evo is a playground for evolutionary agents in your browser, with world mechanics inspired by the popular web game <a href="https://agar.io">agar.io</a>.
+evo is a playground for evolutionary agents in your browser, with world mechanics inspired by the popular web game <a href="https://agar.io">agar.io</a>. This project provides a clean, simple visual demonstration of the mechanisms of evolutionary computation.
 
 ### Here's how it works:
 
@@ -11,13 +11,14 @@ evo is a playground for evolutionary agents in your browser, with world mechanic
 - Each agent has a "brain" that determines how it behaves. The parameters of an agent's brain are displayed in its color.
 - After each epoch, the most successful alive agents reproduce to populate the next epoch.
 
-### Agent Attributes:
+### Agent Attributes/Genome:
 
-- Attraction to food
-- Repulsion from nearby larger agents
-- Attraction to nearby smaller agents
+1. Attraction to food
+2. Repulsion from nearby larger agents
+3. Attraction to nearby smaller agents
 
 
+<hr>
 
 ### TODO:
 
