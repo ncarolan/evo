@@ -10,3 +10,17 @@ evo is a playground for evolutionary agents in your browser, with world mechanic
 - Agents can eat food to grow, and can eat other agents smaller than them.
 - Each agent has a "brain" that determines how it behaves. The parameters of an agent's brain are displayed in its color.
 - After each epoch, the most successful alive agents reproduce to populate the next epoch.
+
+### Agent Attributes:
+
+- Attraction to food
+- Repulsion from nearby larger agents
+- Attraction to nearby smaller agents
+
+
+
+### TODO:
+
+- More variation in color representations
+- Add selection/recombination methods
+- Mini neural networks for agent "brains"?
