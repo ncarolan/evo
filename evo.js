@@ -91,7 +91,7 @@ function draw() {
   if (mouseIsPressed && !flag && t>1){
     //Create initial agents
     for ( let i = 1; i <= agentCount; i++ ) {
-        agents.push(new agent());
+        agents.push(new agent(10,1,-1));
       }
     //Populate initial food
     for ( let i = 1; i <= foodCount; i++ ) {
@@ -121,6 +121,7 @@ function draw() {
       epoch_count += 1;
 
       //Perform selection and recombination after each epoch
+      agents = selection(agents);
 
       //Populate food for next epoch
       foodList = [];
@@ -144,12 +145,34 @@ function simulate(){
     }
 }
 
+// Selection Function : returns list of agents for next epoch
+function selection(agents){
+  let total_eaten = 0;
+  let survived_agents = [];
+
+  for(let agent of agents){
+    if(agent.alive){
+      total_eaten += (agent.size-40);
+      agent.size = 40;
+      survived_agents.push(agent);
+    }
+  }
+
+  // Create new agents if needed
+  while(survived_agents.length < agentCount){
+    survived_agents.push(new agent((Math.random() * 20) + 1, (Math.random() * 2), -1 - (Math.random() * 10)));
+  }
+
+  return survived_agents;
+
+}
+
 // Agent -----------------------------------------------------------------------------------------
-function agent(){
+function agent(food_attraction,agent_attraction,agent_fear){
   this.X = random(0,width);
   this.Y = random(0,height);
 
-  this.color = random(color_list);
+  this.color = [food_attraction*10, agent_attraction * 20, Math.abs(agent_fear)*100];
 
   this.size = 40;
 
@@ -160,8 +183,9 @@ function agent(){
   this.alive = true;
 
   //Genetic Features
-  //this.food_attraction = random(-10,10);
-  //this.agent_attraction = random(-10,10);
+  this.food_attraction = food_attraction;
+  this.agent_attraction = agent_attraction;
+  this.agent_fear = agent_fear;
 
   //Check Distance - determines if agent can eat pellets or agents
   this.check_distance = function(entity){
@@ -179,9 +203,18 @@ function agent(){
   // Draws agent on the screen
   this.display = function(){
     noStroke();
-    fill(this.color);
+    let c = color(this.color[0],this.color[1],this.color[2])
+    fill(c);
       ellipse(this.X,this.Y,this.size);
   }; 
+
+  // Internal "brain"
+  this.output = function(nearestFood,nearestBiggerAgent,nearestSmallerAgent){
+    //let answer = [0,0];
+    let X = this.food_attraction * (nearestFood[0]-this.X) + this.agent_fear * (nearestBiggerAgent[0]-this.X) + this.agent_attraction * (nearestSmallerAgent[0]-this.X);
+    let Y = this.food_attraction * (nearestFood[1]-this.Y) + this.agent_fear * (nearestBiggerAgent[1]-this.Y) + this.agent_attraction * (nearestSmallerAgent[1]-this.Y);
+    return [X,Y];
+  }
 
   // UPDATE FUNCTION
   this.update = function(){
@@ -191,11 +224,10 @@ function agent(){
 
         //Identify nearest food and move toward it
         let nearestFoodDist = 999999;
-        let dist_x = 0;
-        let dist_y = 0;
+        let dist_x = this.X;
+        let dist_y = this.Y;
         let dist = 0;
-        let nearestFoodX = width/2;
-        let nearestFoodY = height/2;
+        let nearestFood = [this.X,this.Y];
         for(let food of foodList){
           if(!food.eaten){
             dist_x = abs(this.X-food.X);
@@ -204,21 +236,64 @@ function agent(){
 
             if(dist < nearestFoodDist){
               nearestFoodDist = dist; 
-              nearestFoodX = food.X;
-              nearestFoodY = food.Y;          
+              nearestFood = [food.X, food.Y];         
             }
           }
         }
 
-        // Identify nearest agent and most away / toward it
+        // Identify nearest larger agent and most away / toward it
+        let nearestAgentDist = 999999;
+        let nearestLargerAgent = [this.X, this.Y];
+        for(let otherAgent of agents){
+          if(otherAgent.size > this.size){
+            dist_x = abs(this.X-otherAgent.X);
+            dist_y = abs(this.Y-otherAgent.Y);
+            dist = sqrt(dist_x**2 + dist_y**2);
 
-        if(foodList.length > 0){
-          //div_factor regulates speed
-          let div_factor = 1 / (abs(nearestFoodX-this.X) + abs(nearestFoodY-this.Y));
-          this.X += (nearestFoodX - this.X) * div_factor;
-          this.Y += (nearestFoodY - this.Y) * div_factor;
-          //Constrain to screen
+            if(dist < nearestAgentDist && dist < 50){
+              nearestAgentDist = dist;
+              nearestLargerAgent = [otherAgent.X, otherAgent.Y];
+            }
+          }
         }
+
+        // Identify nearest larger agent and most away / toward it
+        nearestAgentDist = 999999;
+        let nearestSmallerAgent = [this.X,this.Y];
+        for(let otherAgent of agents){
+          if(otherAgent.size < this.size){
+            dist_x = abs(this.X-otherAgent.X);
+            dist_y = abs(this.Y-otherAgent.Y);
+            dist = sqrt(dist_x**2 + dist_y**2);
+
+            if(dist < nearestAgentDist && dist < 50){
+              nearestAgentDist = dist;
+              nearestSmallerAgent = [otherAgent.X, otherAgent.Y];
+            }
+          }
+        }
+
+
+      //div_factor regulates speed
+      let output = this.output(nearestFood,nearestLargerAgent,nearestSmallerAgent);
+      let deltaX = output[0];
+      let deltaY = output[1];
+      let div_factor = 100 / (this.size * (abs(deltaX) + abs(deltaY)));
+      this.X += (deltaX) * div_factor;
+      this.Y += (deltaY) * div_factor;
+      //Constrain to screen
+      if(this.X < this.size){
+        this.X=this.size;
+      }
+      if(this.X > width-this.size){
+        this.X=width-this.size;
+      }
+      if(this.Y-this.size < 0){
+        this.Y=this.size;
+      }
+      if(this.Y > height-this.size){
+        this.Y=height-this.size;
+      }
 
       //Check for food
       for(let food of foodList){
@@ -236,9 +311,9 @@ function agent(){
       //Check for other agents
       for(let otherAgent of agents){
         if(this.check_distance(otherAgent) && this.size > otherAgent.size && otherAgent.alive){
-          this.size += otherAgent.size;
+          this.size += sqrt(otherAgent.size);
 
-          //Eat food / Make not accessible
+          //Eat agent / Make not accessible
           otherAgent.X = -1000;
           otherAgent.Y = -1000;
           otherAgent.alive = false;
